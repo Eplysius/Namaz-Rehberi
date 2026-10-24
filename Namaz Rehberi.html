@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Namaz Rehberi</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EFF3F2;--card:#fff;--ink:#17292B;--mute:#586C6E;--acc:#0E5A5C;--accI:#fff;--soft:#DDE9E8;--line:#CBD8D7;--fs:19px;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root:not([data-theme=light]){color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0F1A1B;--card:#172628;--ink:#E7F0EF;--mute:#9DB3B2;--acc:#6FC3C0;--accI:#0F1A1B;--soft:#21393B;--line:#2E4648}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--fs)/1.55 "Atkinson Hyperlegible",system-ui,Arial,sans-serif}
+.w{max-width:760px;margin:0 auto;padding:14px 14px 60px}
+.top{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+h1{font-size:1.25rem;margin:0;flex:none}
+.fs{margin-left:auto;display:flex;gap:6px}
+button{font:inherit;color:inherit;cursor:pointer}
+.fs button{width:42px;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);font-weight:700}
+#q{width:100%;font:inherit;padding:14px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+#q:focus,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.cat{padding:14px 8px;border-radius:14px;border:2px solid var(--line);background:var(--card);text-align:center;font-weight:700;line-height:1.25}
+.cat small{display:block;font-weight:400;color:var(--mute);font-size:.8rem;margin-top:2px}
+.cat[aria-pressed=true]{background:var(--acc);color:var(--accI);border-color:var(--acc)}
+.cat[aria-pressed=true] small{color:inherit;opacity:.85}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tab{padding:10px 16px;border-radius:999px;border:2px solid var(--line);background:var(--card);font-weight:700}
+.tab[aria-pressed=true]{background:var(--soft);border-color:var(--acc)}
+h2{font-size:1.15rem;margin:18px 0 4px}
+.sub{color:var(--mute);margin:0 0 6px;font-size:.9rem}
+.m{display:flex;gap:10px;align-items:flex-start;margin:6px 0;padding:10px 14px;background:var(--soft);border-radius:12px;font-weight:700;cursor:pointer}
+.m i{font-weight:400;font-style:italic;display:block}
+.o{margin:6px 0;padding:12px 14px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;cursor:pointer}
+.o b{display:block;color:var(--acc);font-size:.9rem}
+.o p{margin:2px 0 0;font-style:italic}
+.n{margin:6px 0;padding:6px 14px;color:var(--mute);border-left:4px solid var(--line)}
+.done{opacity:.4;text-decoration:line-through}
+.next{display:block;width:100%;margin:18px 0;padding:16px;border-radius:14px;border:0;background:var(--acc);color:var(--accI);font-weight:700}
+.res{display:block;width:100%;text-align:left;margin:6px 0;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)}
+.res small{display:block;color:var(--mute)}
+details{background:var(--card);border:1.5px solid var(--line);border-radius:12px;margin:6px 0;padding:0 14px}
+summary{padding:12px 0;font-weight:700;cursor:pointer}
+details p{margin:0 0 12px;font-style:italic}
+.hint{color:var(--mute);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="w">
+<div class="top"><h1>Namaz Rehberi</h1><div class="fs"><button id="fm" aria-label="Yazıyı küçült">A−</button><button id="fp" aria-label="Yazıyı büyüt">A+</button></div></div>
+<input id="q" type="search" placeholder="Ara: öğle farz, fatiha, kunut…" aria-label="Ara" autocomplete="off">
+<div class="cats" id="cats"></div>
+<div id="v"></div>
+</div>
+<script>
+const D={
+subh:["Subhaneke","Başlangıç","Subhanekellahumme ve bihamdike ve tebarakesmuke ve teala jedduke ve la ilahe gayruk."],
+euzu:["Euzu – Besmele","Başlangıç","Euzu billahi mines-seytanir-racim, Bismillahir-rahmanir-rahim."],
+bes:["Besmele","Başlangıç","Bismillahir-rahmanir-rahim."],
+fat:["Fatiha Suresi","Sureler","Elhamdu lillahi rabbil-alemin. Er-rahmanir-rahim. Maliki yevmid-din. Iyyake nabudu ve iyyake nestain. İhdinas-siratal-mustaqim. Siratal-lezine enamte aleyhim gayril-magdubi aleyhim ve lad-dallin. Amin."],
+ih:["İhlas Suresi","Sureler","Qul huvallahu ahad. Allahus-samad. Lem yelid ve lem yulad. Ve lem yekun lehu kufuven ahad."],
+fe:["Felak Suresi","Sureler","Qul euzu bi rabbil-falaq. Min sarri ma khalaq. Ve min sarri gasiqin iza vaqab. Ve min sarrin-naffasati fil-uqad. Ve min sarri hasidin iza hasad."],
+nas:["Nas Suresi","Sureler","Qul euzu bi rabbin-nas. Malikin-nas. İlahin-nas. Min sarril-vasvasil-khannas. El-lezi yuvasvisu fi sudurin-nas. Minal-jinnati van-nas."],
+ett:["Ettehiyyatu","Oturuş duaları","Ettehiyyatu lillahi ves-salavatu vet-tayyibat. Esselamu aleyke eyyuhen-nebiyyu ve rahmetullahi ve berekatuh. Esselamu aleyna ve ala ibadillahis-salihin. Eshedu ella ilahe illallah ve eshedu enne Muhammeden abduhu ve rasuluh."],
+sal:["Allahumme Salli","Oturuş duaları","Allahumme salli ala Muhammedin ve ala ali Muhammed. Kema salleyte ala İbrahime ve ala ali İbrahim. İnneke hamidun mecid."],
+bar:["Allahumme Barik","Oturuş duaları","Allahumme barik ala Muhammedin ve ala ali Muhammed. Kema barekte ala İbrahime ve ala ali İbrahim. İnneke hamidun mecid."],
+atn:["Rabbena Atina","Oturuş duaları","Rabbena atina fid-dunya haseneten ve fil-ahirati haseneten ve qina azaben-nar."],
+guf:["Rabbenağfirli","Oturuş duaları","Rabbenağfirlî ve li-valideyye ve lil-muminine yevme yequmul-hisab."],
+sel:["Selam","Oturuş duaları","Önce sağa, sonra sola dönerek: Esselamu aleykum ve rahmetullah."],
+k1:["Kunut 1 (Vitir)","Vitir duaları","Allahumme inna nesteinuke ve nestagfiruke ve nestehdik. Ve numinu bike ve netubu ileyk. Ve netevekkelu aleyke ve nusni aleykel-khayra kullehu neskuruke ve la nekfuruk. Ve nakhlau ve netruku mey yefjuruk."],
+k2:["Kunut 2 (Vitir)","Vitir duaları","Allahumme iyyake nabudu ve leke nusalli ve nesjudu ve ileyke nesa ve nahfid. Narju rahmeteke ve nakhsa azabek. İnne azabeke bil-kuffari mulhiq."],
+ruku:["Rükû tesbihi","Hareket sözleri","Subhane rabbiyel-azım (3 defa)."],
+kalk:["Rükûdan doğrulma","Hareket sözleri","Semi’allahu limen hamideh. Tam dik durunca: Rabbena lekel-hamd."],
+secde:["Secde tesbihi","Hareket sözleri","Subhane rabbiyel-a’la (3 defa)."]
+};
+const IH="ih",FE="fe",NS="nas";
+const V=[
+{id:"sabah",ad:"Sabah",top:4,p:[
+ {ad:"Sünnet",n:2,s:[IH,FE],f:"sabah namazının sünnetini"},
+ {ad:"Farz",n:2,s:[IH,FE],f:"sabah namazının farzını"}]},
+{id:"ogle",ad:"Öğle",top:10,p:[
+ {ad:"İlk sünnet",n:4,s:[IH,FE,NS,IH],f:"öğle namazının ilk sünnetini"},
+ {ad:"Farz",n:4,s:[IH,FE,0,0],f:"öğle namazının farzını"},
+ {ad:"Son sünnet",n:2,s:[IH,FE],f:"öğle namazının son sünnetini"}]},
+{id:"ikindi",ad:"İkindi",top:8,p:[
+ {ad:"Sünnet",n:4,s:[IH,FE,NS,IH],f:"ikindi namazının sünnetini",is:1,s3:1},
+ {ad:"Farz",n:4,s:[IH,FE,0,0],f:"ikindi namazının farzını"}]},
+{id:"aksam",ad:"Akşam",top:5,p:[
+ {ad:"Farz",n:3,s:[IH,FE,0],f:"akşam namazının farzını"},
+ {ad:"Sünnet",n:2,s:[IH,FE],f:"akşam namazının sünnetini"}]},
+{id:"yatsi",ad:"Yatsı",top:13,p:[
+ {ad:"İlk sünnet",n:4,s:[IH,FE,NS,IH],f:"yatsı namazının ilk sünnetini",is:1,s3:1},
+ {ad:"Farz",n:4,s:[IH,FE,0,0],f:"yatsı namazının farzını"},
+ {ad:"Son sünnet",n:2,s:[IH,FE],f:"yatsı namazının son sünnetini"},
+ {ad:"Vitir",n:3,s:[IH,FE,NS],f:"vitir namazını",vt:1}]}
+];
+const M=(t,x)=>["m",t,x],O=k=>["o",k],N=t=>["n",t];
+function rekat(p,i){
+ const s=[],last=i==p.n-1;
+ if(!i){s.push(M("Niyet","Niyet ettim Allah rızası için bugünkü "+p.f+" kılmaya."));s.push(M("“Allahu Akbar” diyerek tekbir al, elleri bağla"));}
+ if(!i||(i==2&&p.s3)){s.push(O("subh"),O("euzu"));}else s.push(O("bes"));
+ s.push(O("fat"));
+ const r=p.s[i];
+ if(r)s.push(O(r));else s.push(N("Zammı sure okunmaz."));
+ if(p.vt&&i==2)s.push(M("Rükûya gitmeden, ayaktayken “Allahu Akbar” de; elleri kulak hizasına kaldırıp tekrar bağla"),O("k1"),O("k2"));
+ s.push(M("“Allahu Akbar” diyerek rükûya eğil"),O("ruku"),
+ M("“Semi’allahu limen hamideh” diyerek doğrul"),O("kalk"),
+ M("“Allahu Akbar” diyerek 1. secdeye git"),O("secde"),
+ M("“Allahu Akbar” diyerek otur, kısa bekle, tekrar “Allahu Akbar” diyerek 2. secdeye git"),O("secde"));
+ if(last){s.push(M("Son oturuşta otur"),O("ett"),O("sal"),O("bar"),O("atn"),O("guf"),O("sel"));}
+ else if(i==1&&p.n>2){s.push(M("İlk oturuşta otur"),O("ett"));if(p.is)s.push(O("sal"),O("bar"));s.push(M("“Allahu Akbar” diyerek 3. rekât için ayağa kalk"));}
+ else s.push(M("“Allahu Akbar” diyerek "+(i+2)+". rekât için ayağa kalk"));
+ return s;
+}
+let st={c:null,p:0,r:0};
+const $=id=>document.getElementById(id),v=$("v");
+function cats(){
+ $("cats").innerHTML=V.map((x,i)=>`<button class="cat" data-c="${i}" aria-pressed="${st.c===i}">${x.ad}<small>${x.top} rekât</small></button>`).join("")+
+ `<button class="cat" data-c="d" aria-pressed="${st.c==="d"}">Dualar<small>Sureler, dualar</small></button>`;
+}
+function stepHTML(a){
+ if(a[0]=="n")return `<div class="n">${a[1]}</div>`;
+ if(a[0]=="m")return `<div class="m" tabindex="0"><span>${a[1]}${a[2]?`<i>“${a[2]}”</i>`:""}</span></div>`;
+ const d=D[a[1]];return `<div class="o" tabindex="0"><b>${d[0]}</b><p>${d[2]}</p></div>`;
+}
+function show(){
+ cats();const q=$("q").value.trim();
+ if(q)return search(q);
+ if(st.c===null){v.innerHTML=`<h2>Hangi namaz?</h2><p class="sub">Yukarıdan vakti seç, ya da arama kutusuna yaz. Adımlara dokununca üstü çizilir; böylece nerede kaldığını görürsün.</p>`;return;}
+ if(st.c==="d"){
+  const g={};Object.values(D).forEach(d=>(g[d[1]]=g[d[1]]||[]).push(d));
+  v.innerHTML=Object.keys(g).map(k=>`<h2>${k}</h2>`+g[k].map(d=>`<details><summary>${d[0]}</summary><p>${d[2]}</p></details>`).join("")).join("");return;}
+ const x=V[st.c],p=x.p[st.p];
+ let h=`<h2>${x.ad} namazı</h2><p class="sub">Toplam ${x.top} rekât</p><div class="tabs">`+
+  x.p.map((y,i)=>`<button class="tab" data-p="${i}" aria-pressed="${i==st.p}">${y.ad} (${y.n})</button>`).join("")+`</div>`;
+ h+=`<div class="tabs">`+Array.from({length:p.n},(_,i)=>`<button class="tab" data-r="${i}" aria-pressed="${i==st.r}">${i+1}. rekât</button>`).join("")+`</div>`;
+ h+=rekat(p,st.r).map(stepHTML).join("");
+ const lastR=st.r==p.n-1,lastP=st.p==x.p.length-1;
+ h+=`<button class="next" id="nx">${!lastR?(st.r+2)+". rekâta geç":!lastP?x.p[st.p+1].ad+" bölümüne geç":"Bitti – başa dön"}</button>`;
+ v.innerHTML=h;
+}
+const norm=s=>s.toLocaleLowerCase("tr").replace(/ı/g,"i").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[’'"-]/g," ");
+function search(q){
+ const w=norm(q).split(/\s+/);let h="",c=0;
+ V.forEach((x,i)=>x.p.forEach((p,j)=>{const t=norm(x.ad+" "+p.ad+" "+p.n+" rekat namaz");if(w.every(z=>t.includes(z))){c++;h+=`<button class="res" data-go="${i},${j}">${x.ad} – ${p.ad}<small>${p.n} rekât, adım adım</small></button>`;}}));
+ Object.values(D).forEach(d=>{const t=norm(d[0]+" "+d[2]);if(w.every(z=>t.includes(z))){c++;h+=`<details><summary>${d[0]} <span class="hint">${d[1]}</span></summary><p>${d[2]}</p></details>`;}});
+ v.innerHTML=h||`<p class="sub">“${q}” için sonuç yok. Örnek: “yatsı vitir”, “fatiha”, “kunut”.</p>`;
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest("button,.m,.o");if(!b)return;
+ if(b.classList.contains("m")||b.classList.contains("o")){b.classList.toggle("done");return;}
+ const d=b.dataset;
+ if(d.c!==undefined){$("q").value="";st.c=d.c=="d"?"d":+d.c;st.p=0;st.r=0;show();scrollTo(0,0);}
+ else if(d.p!==undefined){st.p=+d.p;st.r=0;show();}
+ else if(d.r!==undefined){st.r=+d.r;show();}
+ else if(d.go){const[a,c]=d.go.split(",");$("q").value="";st.c=+a;st.p=+c;st.r=0;show();scrollTo(0,0);}
+ else if(b.id=="nx"){const x=V[st.c],p=x.p[st.p];
+  if(st.r<p.n-1)st.r++;else if(st.p<x.p.length-1){st.p++;st.r=0;}else{st.p=0;st.r=0;}
+  show();scrollTo(0,0);}
+ else if(b.id=="fp"||b.id=="fm"){const r=document.documentElement,f=parseInt(getComputedStyle(r).getPropertyValue("--fs"))+(b.id=="fp"?2:-2);r.style.setProperty("--fs",Math.min(30,Math.max(15,f))+"px");}
+});
+$("q").addEventListener("input",()=>{if(!$("q").value)show();else{st.c=null;show();}});
+show();
+</script>
+</body>
+</html>
